@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thank You for Visiting! Here’s Your Access Code 🌟</title>
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #333;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form {
+            width: 80%;
+            max-width: 500px;
+            background-color: #444;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .title {
+            margin-top: 20px;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-align: center;
+            color: #108ee9;
+        }
+
+        .divider {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, rgba(255, 255, 255, 0), #fff, rgba(255, 255, 255, 0));
+            margin: 15px 0;
+        }
+
+        .message {
+            font-size: 16px;
+            color: #ffffff;
+            /* Set text color to white */
+            line-height: 1.6;
+        }
+
+        .access-code {
+            font-size: 22px;
+            text-align: center;
+            color: #ffcc00;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px dashed #ffcc00;
+            border-radius: 5px;
+        }
+
+        .link {
+            color: #108ee9;
+            text-decoration: none;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form">
+        <h1 class="title">Welcome, {{Name}}!</h1>
+        <div class="divider"></div>
+        <p class="message">
+            Thank you so much for visiting my website! I’m truly glad you took the time to learn more about me and my
+            work.
+            As part of your visit, here is your access code:
+        </p>
+
+        <div class="access-code">{{VCode}}</div>
+
+        <p class="message">
+            Just a note—this code can be used multiple times. It’s here to enhance your browsing experience, though it
+            doesn’t serve any functional purpose.
+        </p>
+
+
+
+        <p class="message">
+            If you enjoyed my work or would like to connect professionally, I’d be delighted to connect on LinkedIn! You
+            can find me here:
+            <a href="https://www.linkedin.com/in/tianyuan-bi/" class="link" target="_blank">Tianyuan Bi on LinkedIn</a>.
+        </p>
+
+        <p class="message">Thanks again, and I look forward to connecting with you!</p>
+
+        <div class="divider"></div>
+
+        <p class="message">Best regards,<br>Tianyuan Bi(Tim Bi)</p>
+    </div>
+</body>
+
+</html>

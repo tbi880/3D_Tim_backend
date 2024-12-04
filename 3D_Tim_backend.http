@@ -1,0 +1,6 @@
+@_3D_Tim_backend_HostAddress = http://localhost:5130
+
+GET {{_3D_Tim_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

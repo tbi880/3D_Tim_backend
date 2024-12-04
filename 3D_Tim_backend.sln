@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "3D_Tim_backend", "3D_Tim_backend.csproj", "{E252B83E-7C6A-4C5F-AD4E-95DF1E6A0CD0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E252B83E-7C6A-4C5F-AD4E-95DF1E6A0CD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E252B83E-7C6A-4C5F-AD4E-95DF1E6A0CD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E252B83E-7C6A-4C5F-AD4E-95DF1E6A0CD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E252B83E-7C6A-4C5F-AD4E-95DF1E6A0CD0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {348CFEBC-B131-449C-9D9C-E3D932D24E2C}
+	EndGlobalSection
+EndGlobal
