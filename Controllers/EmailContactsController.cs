@@ -44,9 +44,14 @@ namespace _3D_Tim_backend.Controllers
 
 
 
-            var emailContactInDb = await _emailContactRepository.GetByNameAndEmailAsync(emailContactDto.Name, emailContactDto.Email);
+            var emailContactInDb = await _emailContactRepository.GetByEmailAsync(emailContactDto.Email);
             if (emailContactInDb != null)
             {
+                emailContactInDb.Name = emailContactDto.Name;
+                emailContactInDb.Message = emailContactDto.Message;
+                emailContactInDb.AllowSaveEmail = emailContactDto.AllowSaveEmail;
+                await _emailContactRepository.UpdateContactAsync(emailContactInDb);
+
                 var messageObject = new
                 {
                     recipientEmail = emailContactDto.Email,

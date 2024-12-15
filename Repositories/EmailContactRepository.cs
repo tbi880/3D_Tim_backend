@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using System.Security.Cryptography.X509Certificates;
 
 namespace _3D_Tim_backend.Repositories
 {
@@ -72,5 +73,17 @@ namespace _3D_Tim_backend.Repositories
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<EmailContact?> GetByEmailAsync(string email)
+        {
+            return await _context.EmailContacts.FirstOrDefaultAsync(contact => contact.Email == email);
+        }
+
+        public async Task UpdateContactAsync(EmailContact emailContact)
+        {
+            _context.EmailContacts.Update(emailContact);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }
