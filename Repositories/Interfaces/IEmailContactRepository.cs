@@ -19,7 +19,7 @@ namespace _3D_Tim_backend.Repositories
 
         Task<EmailContact?> GetByVCodeAsync(string vCode);
 
-        Task DeleteAll();
+        Task DeleteAllAsync();
         Task SaveChangesAsync();
     }
 }

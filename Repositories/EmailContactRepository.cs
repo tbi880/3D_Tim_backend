@@ -64,7 +64,7 @@ namespace _3D_Tim_backend.Repositories
         }
 
 
-        public async Task DeleteAll()
+        public async Task DeleteAllAsync()
         {
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM EmailContacts");
         }

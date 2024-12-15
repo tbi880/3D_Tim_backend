@@ -6,15 +6,15 @@ using _3D_Tim_backend.Services;
 
 namespace _3D_Tim_backend.Consumers
 {
-    public class EmailConsumer : BackgroundService
+    public class EmailConsumer<T> : BackgroundService where T : class, IModel
     {
-        private readonly IModel _channel;
+        private readonly T _channel;
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public EmailConsumer(IServiceScopeFactory serviceScopeFactory, MessageQueueService messageQueueService)
+        public EmailConsumer(IServiceScopeFactory serviceScopeFactory, IMessageQueueService messageQueueService)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            _channel = messageQueueService.GetChannel();
+            _channel = messageQueueService.GetChannel<T>();
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)

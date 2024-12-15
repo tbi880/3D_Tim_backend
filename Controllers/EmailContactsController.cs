@@ -14,26 +14,23 @@ namespace _3D_Tim_backend.Controllers
     [ApiController]
     public class EmailContactsController : ControllerBase
     {
-        private readonly IEmailContactRepository _emailContactRepository;
+        private readonly IEmailContactService _emailContactService;
 
-        private readonly MessageQueueService _messageQueueService;
-
-        private readonly AppDbContext _context;
+        private readonly IMessageQueueService _messageQueueService;
 
 
 
-        public EmailContactsController(IEmailContactRepository emailContactRepository, MessageQueueService messageQueueService, AppDbContext context)
+        public EmailContactsController(IEmailContactService emailContactService, IMessageQueueService messageQueueService)
         {
-            _emailContactRepository = emailContactRepository;
+            _emailContactService = emailContactService;
             _messageQueueService = messageQueueService;
-            _context = context;
         }
 
 #if DEBUG // only in development environment
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EmailContact>>> GetEmailContacts()
         {
-            var contacts = await _emailContactRepository.GetAllAsync();
+            var contacts = await _emailContactService.GetAllContactsAsync();
             return Ok(contacts);
         }
 #endif
@@ -41,45 +38,14 @@ namespace _3D_Tim_backend.Controllers
         [HttpPost]
         public async Task<ActionResult> PostEmailContact([FromBody] CreateEmailContactDto emailContactDto)
         {
+            await _emailContactService.CreateOrUpdateEmailContactAsync(emailContactDto);
+            var emailContactInDb = await _emailContactService.GetContactByEmailAsync(emailContactDto.Email);
 
-
-
-            var emailContactInDb = await _emailContactRepository.GetByEmailAsync(emailContactDto.Email);
-            if (emailContactInDb != null)
-            {
-                emailContactInDb.Name = emailContactDto.Name;
-                emailContactInDb.Message = emailContactDto.Message;
-                emailContactInDb.AllowSaveEmail = emailContactDto.AllowSaveEmail;
-                await _emailContactRepository.UpdateContactAsync(emailContactInDb);
-
-                var messageObject = new
-                {
-                    recipientEmail = emailContactDto.Email,
-                    recipientName = emailContactDto.Name,
-                    vCode = emailContactInDb.VCode,
-                };
-                var message = JsonSerializer.Serialize(messageObject);
-                _messageQueueService.PublishMessage(message);
-                return Created();
-            }
-            var newEmailContact = new EmailContact
-            {
-                Name = emailContactDto.Name,
-                Email = emailContactDto.Email,
-                Message = emailContactDto.Message,
-                AllowSaveEmail = emailContactDto.AllowSaveEmail,
-                VCode = await _emailContactRepository.GenerateUniqueVCodeAsync()
-            };
-
-            await _emailContactRepository.AddAsync(newEmailContact);
-            await _emailContactRepository.SaveChangesAsync();
-
-            // Send email with the VCode
             var messageObj = new
             {
-                recipientEmail = newEmailContact.Email,
-                recipientName = newEmailContact.Name,
-                vCode = newEmailContact.VCode,
+                recipientEmail = emailContactInDb!.Email,
+                recipientName = emailContactInDb!.Name,
+                vCode = emailContactInDb!.VCode,
             };
             var msg = JsonSerializer.Serialize(messageObj);
             _messageQueueService.PublishMessage(msg);
@@ -90,7 +56,7 @@ namespace _3D_Tim_backend.Controllers
         [HttpPost("verify")]
         public async Task<ActionResult<EmailContact>> PostEmailContactByVCode([FromBody] VCodeVerifyDto vCodeVerifyDto)
         {
-            var emailContactInDb = await _emailContactRepository.GetByVCodeAsync(vCodeVerifyDto.VerificationCode);
+            var emailContactInDb = await _emailContactService.VerifyContactByVCodeAsync(vCodeVerifyDto.VerificationCode);
             if (emailContactInDb == null)
             {
                 return Ok(new VCodeVerifyReturnDto("notFound", "None"));
@@ -103,7 +69,7 @@ namespace _3D_Tim_backend.Controllers
         [HttpDelete]
         public async Task<ActionResult> DeleteEmailContact()
         {
-            await _emailContactRepository.DeleteAll();
+            await _emailContactService.DeleteAllContactsAsync();
             return NoContent();
         }
 #endif

@@ -1,8 +1,6 @@
 using _3D_Tim_backend.Data;
 using Microsoft.EntityFrameworkCore;
-using _3D_Tim_backend.Repositories;
-using _3D_Tim_backend.Consumers;
-using _3D_Tim_backend.Services;
+using _3D_Tim_backend.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,12 +32,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddScoped<IEmailContactRepository, EmailContactRepository>();
-
-// add RabbitMQ and mail services
-builder.Services.AddSingleton<MessageQueueService>();
-builder.Services.AddSingleton<EmailService>();
-builder.Services.AddHostedService<EmailConsumer>(); // register the consumer as a hosted service
+builder.Services.AddRepository();
+builder.Services.AddServices();
+builder.Services.AddMessageQueueServices();
 
 
 // CORS configuration

@@ -5,12 +5,12 @@ using RabbitMQ.Client;
 
 namespace _3D_Tim_backend.Services
 {
-    public class MessageQueueService
+    public class MessageQueueServiceForRabbitMQ : IMessageQueueService
     {
         private readonly IConnection _connection;
         private readonly IModel _channel;
 
-        public MessageQueueService(IConfiguration configuration)
+        public MessageQueueServiceForRabbitMQ(IConfiguration configuration)
         {
             var factory = new ConnectionFactory
             {
@@ -31,9 +31,9 @@ namespace _3D_Tim_backend.Services
             _channel.BasicPublish(exchange: "", routingKey: "email_queue", basicProperties: null, body: body);
         }
 
-        public IModel GetChannel()
+        public T GetChannel<T>()
         {
-            return _channel;
+            return (T)_channel;
         }
 
 
@@ -42,5 +42,6 @@ namespace _3D_Tim_backend.Services
             _channel.Close();
             _connection.Close();
         }
+
     }
 }
