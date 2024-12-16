@@ -1,4 +1,3 @@
-using _3D_Tim_backend.DTOs;
 using _3D_Tim_backend.Entities;
 
 public interface IEmailContactService

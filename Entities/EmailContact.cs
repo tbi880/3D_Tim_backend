@@ -1,6 +1,5 @@
 
 using System.ComponentModel.DataAnnotations;
-using _3D_Tim_backend.Data;
 
 
 namespace _3D_Tim_backend.Entities
@@ -26,7 +25,7 @@ namespace _3D_Tim_backend.Entities
         public bool AllowSaveEmail { get; set; } = true;
 
         [Required]
-        public string VCode { get; set; }
+        public string VCode { get; set; } = string.Empty;
     }
 
 }

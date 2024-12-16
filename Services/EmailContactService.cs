@@ -1,11 +1,7 @@
-using _3D_Tim_backend.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using _3D_Tim_backend.DTOs;
 using _3D_Tim_backend.Entities;
 using _3D_Tim_backend.Repositories;
-using System.Text.Json;
-using Xunit.Sdk;
+
 
 public class EmailContactService : IEmailContactService
 {

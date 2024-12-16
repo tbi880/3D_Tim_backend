@@ -1,6 +1,4 @@
 using _3D_Tim_backend.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace _3D_Tim_backend.Repositories
 {

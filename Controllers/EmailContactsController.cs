@@ -1,12 +1,7 @@
 using _3D_Tim_backend.Entities;
-using _3D_Tim_backend.Repositories;
 using _3D_Tim_backend.DTOs;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using _3D_Tim_backend.Services;
 using System.Text.Json;
-using _3D_Tim_backend.Data;
 
 namespace _3D_Tim_backend.Controllers
 {

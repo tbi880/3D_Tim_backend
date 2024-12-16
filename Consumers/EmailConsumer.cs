@@ -30,7 +30,7 @@ namespace _3D_Tim_backend.Consumers
 
                 // 假设消息内容为 JSON 格式 { "recipientEmail": "user@example.com", "recipientName": "Someone", "vCode": "AFQGSD213asdqwr12" }
                 var emailData = JsonSerializer.Deserialize<EmailMessage>(message);
-                await emailService.SendEmailAsync(emailData.recipientEmail, emailData.recipientName, emailData.vCode);
+                await emailService.SendEmailAsync(emailData!.recipientEmail, emailData!.recipientName, emailData!.vCode);
             };
 
             _channel.BasicConsume(queue: "email_queue", autoAck: true, consumer: consumer);
@@ -38,10 +38,10 @@ namespace _3D_Tim_backend.Consumers
         }
     }
 
-    public class EmailMessage
+    public record class EmailMessage
     {
-        public string recipientEmail { get; set; }
-        public string recipientName { get; set; }
-        public string vCode { get; set; }
+        public required string recipientEmail { get; set; }
+        public required string recipientName { get; set; }
+        public required string vCode { get; set; }
     }
 }

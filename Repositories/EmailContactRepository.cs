@@ -1,10 +1,6 @@
 using _3D_Tim_backend.Data;
 using _3D_Tim_backend.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Security.Cryptography.X509Certificates;
 
 namespace _3D_Tim_backend.Repositories
 {

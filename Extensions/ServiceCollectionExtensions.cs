@@ -1,4 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
 using _3D_Tim_backend.Repositories;
 using _3D_Tim_backend.Services;
 using _3D_Tim_backend.Consumers;

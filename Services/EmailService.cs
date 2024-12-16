@@ -1,7 +1,6 @@
-using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using MimeKit;
-using Microsoft.Extensions.Configuration;
+
 
 namespace _3D_Tim_backend.Services
 {
