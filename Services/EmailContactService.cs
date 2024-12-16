@@ -58,11 +58,14 @@ public class EmailContactService : IEmailContactService
         return await _emailContactRepository.GetByVCodeAsync(vCode);
     }
 
+    public async Task UpdateContactVerifiedAtAsync(EmailContact emailContact)
+    {
+        await _emailContactRepository.UpdateVerifiedAtAsync(DateTime.Now, emailContact);
+    }
 
     public async Task DeleteAllContactsAsync()
     {
         await _emailContactRepository.DeleteAllAsync();
     }
-
 
 }

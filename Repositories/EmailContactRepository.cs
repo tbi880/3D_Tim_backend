@@ -81,5 +81,10 @@ namespace _3D_Tim_backend.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateVerifiedAtAsync(DateTime verifiedAt, EmailContact emailContact)
+        {
+            emailContact.VerifiedAt = verifiedAt;
+            await this.UpdateContactAsync(emailContact);
+        }
     }
 }

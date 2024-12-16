@@ -6,5 +6,7 @@ public interface IEmailContactService
     Task<EmailContact?> GetContactByEmailAsync(string email);
     Task CreateOrUpdateEmailContactAsync<T>(T emailContactDto);
     Task<EmailContact?> VerifyContactByVCodeAsync(string vCode);
+
+    Task UpdateContactVerifiedAtAsync(EmailContact emailContact);
     Task DeleteAllContactsAsync();
 }

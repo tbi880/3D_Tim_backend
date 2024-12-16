@@ -56,6 +56,7 @@ namespace _3D_Tim_backend.Controllers
             {
                 return Ok(new VCodeVerifyReturnDto("notFound", "None"));
             }
+            await _emailContactService.UpdateContactVerifiedAtAsync(emailContactInDb);
             return Ok(new VCodeVerifyReturnDto("success", emailContactInDb.Name));
         }
 

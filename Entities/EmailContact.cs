@@ -26,6 +26,11 @@ namespace _3D_Tim_backend.Entities
 
         [Required]
         public string VCode { get; set; } = string.Empty;
+
+        [Required]
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? VerifiedAt { get; set; }
     }
 
 }
