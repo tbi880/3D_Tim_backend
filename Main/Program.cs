@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 // load environment variables from .env file
-var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), "../.env");
 if (File.Exists(envFilePath))
 {
     var envVariables = File.ReadAllLines(envFilePath)

@@ -2,6 +2,9 @@
 bin/
 obj/
 publish/
+*/bin/
+*/obj/
+*/publish/
 
 
 # environment file
@@ -60,10 +63,6 @@ Migrations/
 # Auto-Generated sqlite database file
 3d_tim.sql
 
-# User-Specific Config Files
-appsettings.*.json
-appsettings.Development.json
-appsettings.local.json
 
 # GitHub-specific
 !.github/
