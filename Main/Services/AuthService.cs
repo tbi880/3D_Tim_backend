@@ -4,6 +4,7 @@ using _3D_Tim_backend.Repositories;
 using _3D_Tim_backend.Enums;
 using System.Collections.Concurrent;
 using _3D_Tim_backend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 public class AuthService : IAuthService
 {
@@ -18,6 +19,11 @@ public class AuthService : IAuthService
         _tempUserService = tempUserService;
         _jwtTokenGenerator = jwtTokenGenerator;
         _sessionManager = sessionManager;
+    }
+
+    public async Task DeleteAllAccountAsync()
+    {
+        await _userRepository.DeleteAllAsync();
     }
 
     public async Task<bool> IsUserLoggedInAsync(string email)
@@ -35,10 +41,11 @@ public class AuthService : IAuthService
         var user = await _userRepository.GetByEmailAndPasswordAsync(loginDTO.Email, loginDTO.Password);
         if (user == null)
         {
-            throw new Exception("Invalid username or password");
+            throw new Exception("Invalid Email or password");
         }
         var token = _jwtTokenGenerator.GenerateToken(user);
         await _sessionManager.AddSession(user.Email, token);
+        await _userRepository.UpdateLastVisitAtAsync(DateTime.Now, user);
         return token;
     }
 
@@ -93,9 +100,23 @@ public class AuthService : IAuthService
 
     public async Task<string?> RegisterGuestUserAsync<T>(T tempUserRegisterDTO)
     {
-        User? user = await _tempUserService.CreateTempUserAsync(tempUserRegisterDTO) ?? throw new Exception("Error creating user");
+        User? user;
+        try
+        {
+            user = await _tempUserService.CreateTempUserAsync(tempUserRegisterDTO);
+        }
+        catch (Exception ex)
+        {
+            if (ex.Message == "User already exists as a registered user")
+            {
+                throw new Exception("User already exists as a registered user");
+            }
+            throw;
+        }
         var token = _jwtTokenGenerator.GenerateToken(user);
         await _sessionManager.AddSession(user.Email, token);
         return token;
     }
+
+
 }

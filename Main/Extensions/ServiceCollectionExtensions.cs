@@ -24,6 +24,8 @@ namespace _3D_Tim_backend.Extensions
             services.AddScoped<IEmailContactService, EmailContactService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITempUserService, TempUserService>();
+            services.AddScoped<RoomManager>();
+            services.AddScoped<BaccaratRoomManager>();
             return services;
         }
 
@@ -55,6 +57,12 @@ namespace _3D_Tim_backend.Extensions
                     ValidateAudience = false
                 };
             });
+            return services;
+        }
+
+        public static IServiceCollection AddRoomStorage(this IServiceCollection services)
+        {
+            services.AddSingleton<RoomStorage>();
             return services;
         }
     }

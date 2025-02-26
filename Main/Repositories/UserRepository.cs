@@ -2,6 +2,7 @@ using _3D_Tim_backend.Data;
 using _3D_Tim_backend.Entities;
 using Microsoft.EntityFrameworkCore;
 using _3D_Tim_backend.Enums;
+using _3D_Tim_backend.Exceptions;
 
 namespace _3D_Tim_backend.Repositories
 {
@@ -16,7 +17,9 @@ namespace _3D_Tim_backend.Repositories
 
         public async Task DeleteAllAsync()
         {
-            await _context.Database.ExecuteSqlRawAsync("DELETE FROM Users");
+            var allUsers = await _context.Users.ToListAsync();
+            _context.Users.RemoveRange(allUsers);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
@@ -78,6 +81,26 @@ namespace _3D_Tim_backend.Repositories
         {
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task SyncUserDataToDbAsync<T>(T userDomainModel)
+        {
+            var domainUser = userDomainModel as _3D_Tim_backend.Domain.IUser;
+            if (domainUser == null)
+            {
+                throw new InvalidCastException("Invalid user domain model while syncing user data to db");
+            }
+
+            var user = await GetByIdAsync(domainUser.UserId);
+            if (user == null)
+            {
+                throw new UserNotFoundException(domainUser.UserId);
+            }
+            user.Money = domainUser.MoneyInRoom;
+            user.LastVisitAt = DateTime.Now;
+            user.TotalBets += domainUser.TotalBetsInRoom;
+
+            await UpdateUserAsync(user);
         }
     }
 }

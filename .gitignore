@@ -9,6 +9,7 @@ publish/
 
 # environment file
 .env
+Main/.env
 
 # User-Specific Files
 *.user

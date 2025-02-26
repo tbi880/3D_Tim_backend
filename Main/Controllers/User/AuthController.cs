@@ -33,12 +33,32 @@ namespace _3D_Tim_backend.Controllers
             }
         }
 
-        [HttpPost("login")]
-        public IActionResult Login([FromBody] UserLoginDTO dto)
+        [HttpPost("guest-login")]
+        public async Task<IActionResult> GuestLogin([FromBody] TempUserRegisterDTO tempUserRegisterDTO)
         {
             try
             {
-                var token = _authService.LoginAsync(dto).Result;
+                var token = await _authService.RegisterGuestUserAsync(tempUserRegisterDTO);
+                return Ok(new TempUserRegisterReturnDTO(tempUserRegisterDTO.Name, tempUserRegisterDTO.Email, token));
+
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "User already exists as a registered user")
+                {
+                    return Unauthorized(new { message = ex.Message });
+                }
+                return Unauthorized(new { message = ex.Message });
+            }
+
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginDTO dto)
+        {
+            try
+            {
+                var token = await _authService.LoginAsync(dto);
                 return Ok(new { Email = dto.Email, JwtToken = token });
             }
             catch (Exception ex)
@@ -49,11 +69,22 @@ namespace _3D_Tim_backend.Controllers
 
         [HttpPost("logout")]
         [Authorize]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            var email = User.FindFirst(ClaimTypes.Name)?.Value;
-            _authService.LogoutAsync(email);
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            await _authService.LogoutAsync(email);
             return Ok(new { message = "Logout successful" });
         }
+
+#if DEBUG // only in development environment
+
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteAllAccountAsync()
+        {
+            await _authService.DeleteAllAccountAsync();
+            return Ok();
+        }
+
+#endif
     }
 }

@@ -5,7 +5,5 @@ namespace _3D_Tim_backend.DTOs
     public record class UserDTO
     (
         [Required][StringLength(50)] string Name,
-        [Required][StringLength(100)] string Email,
-        [Required][StringLength(200)] string JwtToken
-    );
+        [Required][StringLength(100)] string Email);
 }

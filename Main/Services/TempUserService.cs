@@ -25,7 +25,7 @@ public class TempUserService : ITempUserService
         {
             if (userInDB.Role != Role.Guest)
             {
-                throw new Exception("User already exists");
+                throw new Exception("User already exists as a registered user");
             }
             else
             {

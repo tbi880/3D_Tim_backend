@@ -6,4 +6,6 @@ public interface IAuthService
     Task<string?> LoginAsync<T>(T userLoginDTO);
     Task<string?> RegisterGuestUserAsync<T>(T tempUserRegisterDTO);
 
+    Task DeleteAllAccountAsync();
+
 }

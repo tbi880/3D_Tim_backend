@@ -20,6 +20,10 @@ namespace _3D_Tim_backend.Entities
         [StringLength(1000)]
         public string? PasswordHash { get; set; }
 
+        public int Money { get; set; } = 100000;
+
+        public int TotalBets { get; set; } = 0;
+
         public Role Role { get; set; } = Role.Guest;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

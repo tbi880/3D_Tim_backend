@@ -1,6 +1,7 @@
 using _3D_Tim_backend.Data;
 using Microsoft.EntityFrameworkCore;
 using _3D_Tim_backend.Extensions;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,11 +42,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-builder.Services.AddControllers(); // Add controllers
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddRepository();
 builder.Services.AddServices();
 builder.Services.AddMessageQueueServices();
 builder.Services.AddAuthenticationServices(builder.Configuration);
+builder.Services.AddRoomStorage();
+
 
 // CORS configuration
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<Dictionary<string, string[]>>();

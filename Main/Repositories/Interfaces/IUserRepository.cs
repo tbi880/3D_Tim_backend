@@ -14,6 +14,8 @@ namespace _3D_Tim_backend.Repositories
 
         Task UpdateUserAsync(User user);
 
+        Task SyncUserDataToDbAsync<T>(T userDomainModel);
+
         Task UpdateLastVisitAtAsync(DateTime lastVisitAt, User user);
 
 
