@@ -2,6 +2,7 @@ using _3D_Tim_backend.Data;
 using Microsoft.EntityFrameworkCore;
 using _3D_Tim_backend.Extensions;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,8 @@ builder.Services.Configure<HostOptions>(o =>
 
 // Load environment variables from .env file
 var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), "../.env");
-if (File.Exists(envFilePath))
+var envFileFound = File.Exists(envFilePath);
+if (envFileFound)
 {
     var envVariables = File.ReadAllLines(envFilePath)
                            .Where(line => !string.IsNullOrWhiteSpace(line) && !line.StartsWith("#"))
@@ -26,10 +28,6 @@ if (File.Exists(envFilePath))
     {
         builder.Configuration[envVariable.Key] = envVariable.Value;
     }
-}
-else
-{
-    Console.WriteLine("Warning: .env file not found. Using environment variables or defaults.");
 }
 
 // MySQL configuration
@@ -98,6 +96,11 @@ builder.Logging.AddSimpleConsole(options =>
 });
 
 var app = builder.Build();
+
+if (!envFileFound)
+{
+    app.Logger.LogInformation("Warning: .env file not found. Using environment variables or defaults.");
+}
 
 // Apply migrations automatically
 using (var scope = app.Services.CreateScope())

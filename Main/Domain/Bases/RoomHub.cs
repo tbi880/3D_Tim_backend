@@ -2,15 +2,22 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 public class RoomHub : Hub
 {
     private static readonly ConcurrentDictionary<string, int> ConnectionToUserMap = new();
     private static readonly ConcurrentDictionary<int, string> UserToConnectionMap = new();
+    private readonly ILogger<RoomHub> _logger;
+
+    public RoomHub(ILogger<RoomHub> logger)
+    {
+        _logger = logger;
+    }
 
     public override async Task OnConnectedAsync()
     {
-        Console.WriteLine($"Connected: {Context.ConnectionId}");
+        _logger.LogInformation("Connected: {ConnectionId}", Context.ConnectionId);
         await base.OnConnectedAsync();
     }
 
@@ -19,7 +26,7 @@ public class RoomHub : Hub
         if (ConnectionToUserMap.TryRemove(Context.ConnectionId, out int userId))
         {
             UserToConnectionMap.TryRemove(userId, out _);
-            Console.WriteLine($"User {userId} disconnected");
+            _logger.LogInformation("User {UserId} disconnected", userId);
         }
         await base.OnDisconnectedAsync(exception);
     }
@@ -30,7 +37,7 @@ public class RoomHub : Hub
         UserToConnectionMap[userId] = Context.ConnectionId;
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"Room_{roomId}");
-        Console.WriteLine($"User {userId} joined room {roomId}");
+        _logger.LogInformation("User {UserId} joined room {RoomId}", userId, roomId);
 
         await Clients.Group($"Room_{roomId}").SendAsync("UserJoined", userId);
     }
@@ -43,7 +50,7 @@ public class RoomHub : Hub
             ConnectionToUserMap.TryRemove(connectionId, out _);
             UserToConnectionMap.TryRemove(userId, out _);
 
-            Console.WriteLine($"User {userId} left room {roomId}");
+            _logger.LogInformation("User {UserId} left room {RoomId}", userId, roomId);
             await Clients.Group($"Room_{roomId}").SendAsync("UserLeft", userId);
         }
     }
