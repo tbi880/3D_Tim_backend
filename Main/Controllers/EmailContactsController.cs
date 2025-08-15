@@ -13,12 +13,14 @@ namespace _3D_Tim_backend.Controllers
 
         private readonly IMessageQueueService _messageQueueService;
 
+        private readonly ILogger<EmailContactsController> _logger;
 
 
-        public EmailContactsController(IEmailContactService emailContactService, IMessageQueueService messageQueueService)
+        public EmailContactsController(IEmailContactService emailContactService, IMessageQueueService messageQueueService, ILogger<EmailContactsController> logger)
         {
             _emailContactService = emailContactService;
             _messageQueueService = messageQueueService;
+            _logger = logger;
         }
 
 #if DEBUG // only in development environment
@@ -33,6 +35,7 @@ namespace _3D_Tim_backend.Controllers
         [HttpPost]
         public async Task<ActionResult> PostEmailContact([FromBody] CreateEmailContactDto emailContactDto)
         {
+            _logger.LogInformation("Received email contact creation request for {Email}", emailContactDto.Email);
             await _emailContactService.CreateOrUpdateEmailContactAsync(emailContactDto);
             var emailContactInDb = await _emailContactService.GetContactByEmailAsync(emailContactDto.Email);
 
@@ -44,19 +47,21 @@ namespace _3D_Tim_backend.Controllers
             };
             var msg = JsonSerializer.Serialize(messageObj);
             _messageQueueService.PublishMessage(msg);
-
+            _logger.LogInformation("Email contact created successfully and message published for {Email}", emailContactDto.Email);
             return Created();
         }
 
         [HttpPost("verify")]
         public async Task<ActionResult<EmailContact>> PostEmailContactByVCode([FromBody] VCodeVerifyDto vCodeVerifyDto)
         {
+            _logger.LogInformation("Received email contact verification request for {VerificationCode}", vCodeVerifyDto.VerificationCode);
             var emailContactInDb = await _emailContactService.VerifyContactByVCodeAsync(vCodeVerifyDto.VerificationCode);
             if (emailContactInDb == null)
             {
                 return Ok(new VCodeVerifyReturnDto("notFound", "None"));
             }
             await _emailContactService.UpdateContactVerifiedAtAsync(emailContactInDb);
+            _logger.LogInformation("Email contact verified successfully for {VerificationCode}", vCodeVerifyDto.VerificationCode);
             return Ok(new VCodeVerifyReturnDto("success", emailContactInDb.Name));
         }
 

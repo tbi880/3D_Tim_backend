@@ -3,6 +3,8 @@ using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using _3D_Tim_backend.Services;
+using MimeKit;
+using MailKit.Net.Smtp;
 
 namespace _3D_Tim_backend.Consumers
 {
@@ -11,10 +13,13 @@ namespace _3D_Tim_backend.Consumers
         private readonly T _channel;
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
-        public EmailConsumer(IServiceScopeFactory serviceScopeFactory, IMessageQueueService messageQueueService)
+        private readonly ILogger<EmailConsumer<T>> _logger;
+
+        public EmailConsumer(IServiceScopeFactory serviceScopeFactory, IMessageQueueService messageQueueService, ILogger<EmailConsumer<T>> logger)
         {
             _serviceScopeFactory = serviceScopeFactory;
             _channel = messageQueueService.GetChannel<T>();
+            _logger = logger;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -22,15 +27,62 @@ namespace _3D_Tim_backend.Consumers
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += async (model, ea) =>
             {
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
+                try
+                {
+                    if (stoppingToken.IsCancellationRequested) return;
 
-                using var scope = _serviceScopeFactory.CreateScope();
-                var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+                    var json = Encoding.UTF8.GetString(ea.Body.ToArray());
+                    var emailData = JsonSerializer.Deserialize<EmailMessage>(json, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
 
-                // 假设消息内容为 JSON 格式 { "recipientEmail": "user@example.com", "recipientName": "Someone", "vCode": "AFQGSD213asdqwr12" }
-                var emailData = JsonSerializer.Deserialize<EmailMessage>(message);
-                await emailService.SendEmailAsync(emailData!.recipientEmail, emailData!.recipientName, emailData!.vCode);
+                    if (emailData is null)
+                    {
+                        _logger.LogWarning("EmailMessage is null. Payload={Payload}", json);
+                        return;
+                    }
+
+                    if (!MailboxAddress.TryParse(emailData.recipientEmail, out _))
+                    {
+                        _logger.LogWarning("Skip invalid email: {Email}. Payload={Payload}",
+                            emailData.recipientEmail, json);
+                        return;
+                    }
+
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var emailService = scope.ServiceProvider.GetRequiredService<EmailService>();
+
+                    try
+                    {
+                        await emailService.SendEmailAsync(
+                            emailData.recipientEmail,
+                            emailData.recipientName,
+                            emailData.vCode);
+
+                        _logger.LogInformation("Email sent to {Email}", emailData.recipientEmail);
+                    }
+                    catch (SmtpCommandException ex)
+                    {
+                        _logger.LogWarning(ex, "SMTP command error. Skip email: {Email}", emailData.recipientEmail);
+                    }
+                    catch (SmtpProtocolException ex)
+                    {
+                        _logger.LogError(ex, "SMTP protocol error. Dropping message for {Email}", emailData.recipientEmail);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Unexpected error while sending email to {Email}", emailData.recipientEmail);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Bad JSON. Dropped.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unhandled error in consumer. Dropped.");
+                }
             };
 
             _channel.BasicConsume(queue: "email_queue", autoAck: true, consumer: consumer);

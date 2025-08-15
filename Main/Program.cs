@@ -6,6 +6,10 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+builder.Services.Configure<HostOptions>(o =>
+{
+    o.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
 
 // Load environment variables from .env file
 var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), "../.env");
@@ -88,6 +92,10 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Logging.AddSimpleConsole(options =>
+{
+    options.TimestampFormat = "[yyyy-MM-dd HH:mm:ss.fff] ";
+});
 
 var app = builder.Build();
 
