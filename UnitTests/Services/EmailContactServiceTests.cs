@@ -14,11 +14,13 @@ public class EmailContactServiceTests
     private readonly EmailContactService _service;
     private readonly Mock<IEmailContactRepository> _mockRepo;
     private readonly Mock<ILogger<EmailContactService>> _mockLogger;
+    private readonly ILogger<EmailContactServiceTests> _logger;
 
     public EmailContactServiceTests()
     {
         _mockRepo = new Mock<IEmailContactRepository>();
         _mockLogger = new Mock<ILogger<EmailContactService>>();
+        _logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<EmailContactServiceTests>();
         _service = new EmailContactService(_mockRepo.Object, null, _mockLogger.Object);
     }
 
@@ -59,7 +61,7 @@ public class EmailContactServiceTests
 
         // Assert
         Assert.Equal(email, result?.Email);
-        Console.WriteLine(result?.Name);
+        _logger.LogInformation("{Name}", result?.Name);
     }
     [Fact]
     public async Task CreateOrUpdateEmailContactAsync_Updates_Existing_Contact()
