@@ -4,6 +4,8 @@ using _3D_Tim_backend.Entities;
 using _3D_Tim_backend.Repositories;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 
 namespace UnitTests.repositories;
@@ -13,6 +15,7 @@ public class EmailContactRepositoryTests : IDisposable
     private readonly AppDbContext _dbContext;
     private readonly EmailContactRepository _repository;
     private readonly ITestOutputHelper _output;
+    private readonly Mock<ILogger<EmailContactRepository>> _mockLogger = new();
 
 
     public EmailContactRepositoryTests(ITestOutputHelper output)
@@ -22,7 +25,7 @@ public class EmailContactRepositoryTests : IDisposable
             .Options;
 
         _dbContext = new AppDbContext(options);
-        _repository = new EmailContactRepository(_dbContext);
+        _repository = new EmailContactRepository(_dbContext, _mockLogger.Object);
         _output = output;
 
 

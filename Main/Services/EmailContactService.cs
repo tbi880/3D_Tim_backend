@@ -1,28 +1,35 @@
 using _3D_Tim_backend.DTOs;
 using _3D_Tim_backend.Entities;
 using _3D_Tim_backend.Repositories;
+using Microsoft.Extensions.Logging;
 
 
 public class EmailContactService : IEmailContactService
 {
     private readonly IEmailContactRepository _emailContactRepository;
-    public EmailContactService(IEmailContactRepository emailContactRepository, IMessageQueueService messageQueueService)
+    private readonly ILogger<EmailContactService> _logger;
+
+    public EmailContactService(IEmailContactRepository emailContactRepository, IMessageQueueService messageQueueService, ILogger<EmailContactService> logger)
     {
         _emailContactRepository = emailContactRepository;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<EmailContact>> GetAllContactsAsync()
     {
+        _logger.LogInformation("Fetching all email contacts");
         return await _emailContactRepository.GetAllAsync();
     }
 
     public async Task<EmailContact?> GetContactByEmailAsync(string email)
     {
+        _logger.LogInformation("Fetching contact by email {Email}", email);
         return await _emailContactRepository.GetByEmailAsync(email);
     }
 
     public async Task CreateOrUpdateEmailContactAsync<T>(T dto)
     {
+        _logger.LogInformation("Creating or updating email contact");
         if (dto is not CreateEmailContactDto emailContactDto)
         {
             throw new ArgumentException("The provided type does not contain the required properties.");
@@ -35,6 +42,7 @@ public class EmailContactService : IEmailContactService
             emailContactInDb.Name = emailContactDto.Name;
             emailContactInDb.Message = emailContactDto.Message;
             emailContactInDb.AllowSaveEmail = emailContactDto.AllowSaveEmail;
+            _logger.LogInformation("Updating existing contact {Email}", emailContactDto.Email);
             await _emailContactRepository.UpdateContactAsync(emailContactInDb);
             return;
         }
@@ -47,6 +55,7 @@ public class EmailContactService : IEmailContactService
             AllowSaveEmail = emailContactDto.AllowSaveEmail,
             VCode = await _emailContactRepository.GenerateUniqueVCodeAsync()
         };
+        _logger.LogInformation("Adding new contact {Email}", newEmailContact.Email);
         await _emailContactRepository.AddAsync(newEmailContact);
         await _emailContactRepository.SaveChangesAsync();
         return;
@@ -55,16 +64,19 @@ public class EmailContactService : IEmailContactService
 
     public async Task<EmailContact?> VerifyContactByVCodeAsync(string vCode)
     {
+        _logger.LogInformation("Verifying contact by VCode");
         return await _emailContactRepository.GetByVCodeAsync(vCode);
     }
 
     public async Task UpdateContactVerifiedAtAsync(EmailContact emailContact)
     {
+        _logger.LogInformation("Updating verified timestamp for {Email}", emailContact.Email);
         await _emailContactRepository.UpdateVerifiedAtAsync(DateTime.Now, emailContact);
     }
 
     public async Task DeleteAllContactsAsync()
     {
+        _logger.LogInformation("Deleting all email contacts");
         await _emailContactRepository.DeleteAllAsync();
     }
 

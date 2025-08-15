@@ -6,20 +6,24 @@ namespace _3D_Tim_backend.Services
     using _3D_Tim_backend.Exceptions;
     using _3D_Tim_backend.Domain;
     using System.Security.Cryptography;
+    using Microsoft.Extensions.Logging;
 
     public class RoomManager
     {
         protected readonly IUserRepository _userRepository;
         protected readonly RoomStorage _storage;
+        protected readonly ILogger<RoomManager> _logger;
 
-        public RoomManager(IUserRepository userRepository, RoomStorage storage)
+        public RoomManager(IUserRepository userRepository, RoomStorage storage, ILogger<RoomManager> logger)
         {
             _userRepository = userRepository;
             _storage = storage;
+            _logger = logger;
         }
 
         public async Task RemoveRoomAsync(int roomId)
         {
+            _logger.LogInformation("Removing room {RoomId}", roomId);
             _storage.Rooms.TryGetValue(roomId, out var room);
             if (room == null)
             {
@@ -31,17 +35,20 @@ namespace _3D_Tim_backend.Services
 
         public async Task<IRoom?> GetRoomAsync(int roomId)
         {
+            _logger.LogInformation("Getting room {RoomId}", roomId);
             _storage.Rooms.TryGetValue(roomId, out var room);
             return room;
         }
 
         public async Task<IEnumerable<IRoom>> GetAllRoomsAsync()
         {
+            _logger.LogInformation("Getting all rooms");
             return _storage.Rooms.Values;
         }
 
         public async Task<bool> AddUserToRoomAsync(int userId, int roomId)
         {
+            _logger.LogInformation("Adding user {UserId} to room {RoomId}", userId, roomId);
             if (!_storage.Rooms.ContainsKey(roomId))
             {
                 throw new RoomNotFoundException(roomId);
@@ -63,6 +70,7 @@ namespace _3D_Tim_backend.Services
 
         public async Task<int> CreateRoomAsync(string roomName, int maxUsers, string levelOfBets, GameType gameType)
         {
+            _logger.LogInformation("Creating room {RoomName}", roomName);
             if (!Enum.TryParse(levelOfBets, true, out RoomMinBet roomMinBet) || !Enum.TryParse(levelOfBets, true, out RoomMaxBet roomMaxBet) || !Enum.TryParse(levelOfBets, true, out RoomUnitBet roomUnitBet))
             {
                 throw new LevelOfBetsNotValidException(levelOfBets);
@@ -87,6 +95,7 @@ namespace _3D_Tim_backend.Services
 
         public async Task<bool> RoomAddUserAsync(int userId, int roomId)
         {
+            _logger.LogInformation("RoomAddUserAsync {UserId} {RoomId}", userId, roomId);
             if (!_storage.Rooms.ContainsKey(roomId))
             {
                 throw new RoomNotFoundException(roomId);
@@ -120,6 +129,7 @@ namespace _3D_Tim_backend.Services
 
         public async Task<bool> RoomRemoveUserAsync(int userId, int roomId)
         {
+            _logger.LogInformation("RoomRemoveUserAsync {UserId} {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
                 throw new RoomNotFoundException(roomId);
@@ -141,6 +151,7 @@ namespace _3D_Tim_backend.Services
 
         public virtual async Task<bool> PlaceBetsAsync(int roomId, int userId, Dictionary<string, int> BetSidesWithAmount)
         {
+            _logger.LogInformation("Placing bets for user {UserId} in room {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
                 throw new RoomNotFoundException(roomId);

@@ -1,5 +1,6 @@
 using MailKit.Net.Smtp;
 using MimeKit;
+using Microsoft.Extensions.Logging;
 
 
 namespace _3D_Tim_backend.Services
@@ -7,14 +8,17 @@ namespace _3D_Tim_backend.Services
     public class EmailService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task SendEmailAsync(string recipientEmail, string recipientName, string vCode)
         {
+            _logger.LogInformation("Sending verification email to {Email}", recipientEmail);
             string templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "EmailTemplate.html");
             string htmlTemplate = await File.ReadAllTextAsync(templatePath);
             string subject = "Thanks for your visiting Tim Bi's world! Here is your verification code.";
@@ -40,8 +44,7 @@ namespace _3D_Tim_backend.Services
             }
             catch (TimeoutException ex)
             {
-                Console.WriteLine("SMTP connection timed out.");
-                Console.WriteLine(ex.Message);
+                _logger.LogError(ex, "SMTP connection timed out");
             }
             finally
             {

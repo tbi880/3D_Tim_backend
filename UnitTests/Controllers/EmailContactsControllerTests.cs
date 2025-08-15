@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace UnitTests.Controllers
 {
@@ -16,12 +17,14 @@ namespace UnitTests.Controllers
         private readonly EmailContactsController _controller;
         private readonly Mock<IEmailContactService> _mockService;
         private readonly Mock<IMessageQueueService> _mockQueueService;
+        private readonly Mock<ILogger<EmailContactsController>> _mockLogger;
 
         public EmailContactsControllerTests()
         {
             _mockService = new Mock<IEmailContactService>();
             _mockQueueService = new Mock<IMessageQueueService>();
-            _controller = new EmailContactsController(_mockService.Object, _mockQueueService.Object);
+            _mockLogger = new Mock<ILogger<EmailContactsController>>();
+            _controller = new EmailContactsController(_mockService.Object, _mockQueueService.Object, _mockLogger.Object);
         }
 
 #if DEBUG
