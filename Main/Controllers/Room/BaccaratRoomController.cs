@@ -108,6 +108,7 @@ namespace _3D_Tim_backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
         [HttpPost("place-bets")]
         [Authorize]
         public async Task<IActionResult> PlaceBets([FromBody] PlaceBetsDTO betsDTO)

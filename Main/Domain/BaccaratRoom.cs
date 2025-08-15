@@ -60,7 +60,7 @@ namespace _3D_Tim_backend.Domain
             {
                 if (Users.Count > 0)
                 {
-                    int countdownMilliseconds = 30000;
+                    int countdownMilliseconds = 31000; // 1 second for the internet delay
                     int interval = 500;
                     int elapsed = 0;
                     bool lastHandFinished = false;
