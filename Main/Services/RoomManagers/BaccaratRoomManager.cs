@@ -5,16 +5,21 @@ namespace _3D_Tim_backend.Services
     using _3D_Tim_backend.Repositories;
     using _3D_Tim_backend.Exceptions;
     using _3D_Tim_backend.Domain;
+    using Microsoft.Extensions.Logging;
 
 
     public class BaccaratRoomManager : RoomManager
     {
-        public BaccaratRoomManager(IUserRepository userRepository, RoomStorage storage) : base(userRepository, storage)
+        private readonly ILogger<BaccaratRoomManager> _logger;
+
+        public BaccaratRoomManager(IUserRepository userRepository, RoomStorage storage, ILogger<RoomManager> baseLogger, ILogger<BaccaratRoomManager> logger) : base(userRepository, storage, baseLogger)
         {
+            _logger = logger;
         }
 
         public async Task<List<List<string>>> GetBaccaratHandsAsync(int roomId)
         {
+            _logger.LogInformation("Retrieving baccarat hands for room {RoomId}", roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
                 throw new RoomNotFoundException(roomId);
@@ -37,6 +42,7 @@ namespace _3D_Tim_backend.Services
 
         public async Task<List<string>> GetBaccaratWinningSidesAsync(int roomId)
         {
+            _logger.LogInformation("Retrieving baccarat winning sides for room {RoomId}", roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
                 throw new RoomNotFoundException(roomId);
@@ -59,6 +65,7 @@ namespace _3D_Tim_backend.Services
 
         public async Task<List<string>> GetBaccaratResultListAsync(int roomId)
         {
+            _logger.LogInformation("Retrieving baccarat result list for room {RoomId}", roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
                 throw new RoomNotFoundException(roomId);
@@ -74,6 +81,7 @@ namespace _3D_Tim_backend.Services
 
         public override async Task<bool> PlaceBetsAsync(int roomId, int userId, Dictionary<string, int> BetSidesWithAmount)
         {
+            _logger.LogInformation("Placing baccarat bets for user {UserId} in room {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
                 throw new RoomNotFoundException(roomId);

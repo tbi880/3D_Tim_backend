@@ -5,6 +5,7 @@ using _3D_Tim_backend.DTOs;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace UnitTests.Services;
 
@@ -12,11 +13,13 @@ public class EmailContactServiceTests
 {
     private readonly EmailContactService _service;
     private readonly Mock<IEmailContactRepository> _mockRepo;
+    private readonly Mock<ILogger<EmailContactService>> _mockLogger;
 
     public EmailContactServiceTests()
     {
         _mockRepo = new Mock<IEmailContactRepository>();
-        _service = new EmailContactService(_mockRepo.Object, null);
+        _mockLogger = new Mock<ILogger<EmailContactService>>();
+        _service = new EmailContactService(_mockRepo.Object, null, _mockLogger.Object);
     }
 
     [Fact]

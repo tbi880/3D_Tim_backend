@@ -2,19 +2,23 @@ using _3D_Tim_backend.DTOs;
 using _3D_Tim_backend.Entities;
 using _3D_Tim_backend.Repositories;
 using _3D_Tim_backend.Enums;
+using Microsoft.Extensions.Logging;
 
 
 public class TempUserService : ITempUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly ILogger<TempUserService> _logger;
 
-    public TempUserService(IUserRepository userRepository)
+    public TempUserService(IUserRepository userRepository, ILogger<TempUserService> logger)
     {
         _userRepository = userRepository;
+        _logger = logger;
     }
 
     public async Task<User?> CreateTempUserAsync<T>(T tempUserRegisterDTO)
     {
+        _logger.LogInformation("Creating temporary user");
         TempUserRegisterDTO? tempUser = tempUserRegisterDTO as TempUserRegisterDTO;
         if (tempUser.Email == null || tempUser.Name == null)
         {
@@ -29,6 +33,7 @@ public class TempUserService : ITempUserService
             }
             else
             {
+                _logger.LogInformation("Deleting existing guest user {Email}", userInDB.Email);
                 await _userRepository.DeleteUserAsync(userInDB);
             }
         }
@@ -38,6 +43,7 @@ public class TempUserService : ITempUserService
             Email = tempUser.Email,
         };
 
+        _logger.LogInformation("Temporary user {Email} created", user.Email);
         await _userRepository.CreateUserAsync(user);
         await _userRepository.SaveChangesAsync();
         return user;
@@ -45,12 +51,14 @@ public class TempUserService : ITempUserService
 
     public async Task DeleteAllOutDatedTempUsersAsync()
     {
+        _logger.LogInformation("Deleting outdated temporary users");
         List<User> tempUsers = [.. await _userRepository.GetAllTempUsersAsync()];
         DateTime now = DateTime.Now;
         foreach (User user in tempUsers)
         {
             if (user.LastVisitAt.HasValue && user.LastVisitAt.Value.AddDays(3) < now)
             {
+                _logger.LogInformation("Removing user {Email}", user.Email);
                 await _userRepository.DeleteUserAsync(user);
             }
         }
@@ -59,6 +67,7 @@ public class TempUserService : ITempUserService
 
     public async Task<IEnumerable<User>> GetAllTempUserAsync()
     {
+        _logger.LogInformation("Retrieving all temporary users");
         return await _userRepository.GetAllTempUsersAsync();
     }
 
