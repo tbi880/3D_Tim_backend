@@ -24,7 +24,16 @@ public class TempUserService : ITempUserService
         {
             throw new Exception("Email or Name is null");
         }
-        User? userInDB = await _userRepository.GetByEmailAsync(tempUser.Email);
+        if (!tempUser.Email.Contains("@"))
+        {
+            throw new Exception("Invalid email");
+        }
+        if (tempUser.Name.Length < 2)
+        {
+            throw new Exception("Name must be at least 2 characters long");
+        }
+
+        User? userInDB = await _userRepository.GetByEmailAsync(tempUser.Email.ToLower());
         if (userInDB != null)
         {
             if (userInDB.Role != Role.Guest)
@@ -33,7 +42,7 @@ public class TempUserService : ITempUserService
             }
             else
             {
-                _logger.LogInformation("Deleting existing guest user {Email}", userInDB.Email);
+                _logger.LogInformation("Deleting existing guest user {Email}", userInDB.Email.ToLower());
                 await _userRepository.DeleteUserAsync(userInDB);
             }
         }

@@ -24,11 +24,12 @@ namespace _3D_Tim_backend.Services
         public async Task RemoveRoomAsync(int roomId)
         {
             _logger.LogInformation("Removing room {RoomId}", roomId);
-            _storage.Rooms.TryGetValue(roomId, out var room);
-            if (room == null)
+            if (!_storage.Rooms.TryGetValue(roomId, out var room) || room == null)
             {
-                throw new RoomNotFoundException(roomId);
+                _logger.LogWarning("Tried to remove non-existent room {RoomId}", roomId);
+                return;
             }
+
             await room.StopGameLoopAsync();
             _storage.Rooms.TryRemove(roomId, out _);
         }
@@ -54,18 +55,25 @@ namespace _3D_Tim_backend.Services
                 throw new RoomNotFoundException(roomId);
             }
 
-            IRoom room = _storage.Rooms[roomId];
+            if (_storage.UserIdToRoomId.TryGetValue(userId, out var existingRoomId))
+            {
+                try
+                {
+                    await RoomRemoveUserAsync(userId, existingRoomId);
+                }
+                catch (RoomNotFoundException)
+                {
+                    _storage.UserIdToRoomId.TryRemove(userId, out _);
+                    _logger.LogWarning("Stale mapping removed for user {UserId} -> room {RoomId}", userId, existingRoomId);
+                }
+            }
 
-            if (!_storage.UserIdToRoomId.ContainsKey(userId))
+            var added = await RoomAddUserAsync(userId, roomId);
+            if (added)
             {
                 _storage.UserIdToRoomId.TryAdd(userId, roomId);
             }
-            else
-            {
-                await RoomRemoveUserAsync(userId, _storage.UserIdToRoomId[userId]);
-                _storage.UserIdToRoomId.TryAdd(userId, roomId);
-            }
-            return await RoomAddUserAsync(userId, roomId);
+            return added;
         }
 
         public async Task<int> CreateRoomAsync(string roomName, int maxUsers, string levelOfBets, GameType gameType)
@@ -132,12 +140,19 @@ namespace _3D_Tim_backend.Services
             _logger.LogInformation("RoomRemoveUserAsync {UserId} {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
-                throw new RoomNotFoundException(roomId);
+                // 房间不存在：可能是已经被删除了 -> 清理映射并返回 true（认为移除成功）
+                _storage.UserIdToRoomId.TryRemove(userId, out _);
+                _logger.LogWarning("Attempted to remove user {UserId} from non-existent room {RoomId}. Cleared mapping.", userId, roomId);
+                return true;
             }
+
             if (!room.Users.TryGetValue(userId, out var userInRoom))
             {
+                // 用户不在房间里，仍然清理映射
+                _storage.UserIdToRoomId.TryRemove(userId, out _);
                 throw new RoomUserNotFoundException(userId, roomId);
             }
+
             await _userRepository.SyncUserDataToDbAsync(userInRoom);
             room.Users.TryRemove(userId, out _);
             _storage.UserIdToRoomId.TryRemove(userId, out _);

@@ -78,7 +78,7 @@ public class AuthService : IAuthService
         {
             throw new Exception("Password must be at least 8 characters long");
         }
-        User? userInDB = await _userRepository.GetByEmailAsync(registerDTO.Email);
+        User? userInDB = await _userRepository.GetByEmailAsync(registerDTO.Email.ToLower());
         if (userInDB != null)
         {
             if (userInDB.Role != Role.Guest)
@@ -98,11 +98,11 @@ public class AuthService : IAuthService
         User user = new User
         {
             Name = registerDTO.Name,
-            Email = registerDTO.Email,
+            Email = registerDTO.Email.ToLower(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDTO.Password),
             Role = Role.User
         };
-        _logger.LogInformation("User {Email} registered", user.Email);
+        _logger.LogInformation("User {Email} registered", user.Email.ToLower());
         await _userRepository.CreateUserAsync(user);
         await _userRepository.SaveChangesAsync();
 
