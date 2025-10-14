@@ -29,7 +29,7 @@ namespace _3D_Tim_backend.Utils
                     new Claim(ClaimTypes.Name, user.Name),
                     new Claim(ClaimTypes.Role, user.Role.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddHours(24),
+                Expires = DateTime.UtcNow.AddHours(24 * 7),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)

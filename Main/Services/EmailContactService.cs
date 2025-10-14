@@ -35,7 +35,17 @@ public class EmailContactService : IEmailContactService
             throw new ArgumentException("The provided type does not contain the required properties.");
         }
 
-        var emailContactInDb = await _emailContactRepository.GetByEmailAsync(emailContactDto.Email);
+        if (string.IsNullOrEmpty(emailContactDto.Email) || string.IsNullOrEmpty(emailContactDto.Name) || string.IsNullOrEmpty(emailContactDto.Message))
+        {
+            throw new ArgumentException("Email, Name, and Message cannot be null or empty.");
+        }
+
+        if (!emailContactDto.Email.Contains("@"))
+        {
+            throw new ArgumentException("Invalid email format.");
+        }
+
+        var emailContactInDb = await _emailContactRepository.GetByEmailAsync(emailContactDto.Email.ToLower());
 
         if (emailContactInDb != null)
         {
@@ -50,7 +60,7 @@ public class EmailContactService : IEmailContactService
         var newEmailContact = new EmailContact
         {
             Name = emailContactDto.Name,
-            Email = emailContactDto.Email,
+            Email = emailContactDto.Email.ToLower(),
             Message = emailContactDto.Message,
             AllowSaveEmail = emailContactDto.AllowSaveEmail,
             VCode = await _emailContactRepository.GenerateUniqueVCodeAsync()
