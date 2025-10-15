@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.SignalR;
-using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class RoomHub : Hub
 {
-    private static readonly ConcurrentDictionary<string, int> ConnectionToUserMap = new();
     private static readonly ConcurrentDictionary<int, string> UserToConnectionMap = new();
     private readonly ILogger<RoomHub> _logger;
 
@@ -21,19 +20,19 @@ public class RoomHub : Hub
         await base.OnConnectedAsync();
     }
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        if (ConnectionToUserMap.TryRemove(Context.ConnectionId, out int userId))
+        _logger.LogInformation("Disconnected: {ConnectionId}", Context.ConnectionId);
+        var userId = UserToConnectionMap.FirstOrDefault(x => x.Value == Context.ConnectionId).Key;
+        if (userId != 0)
         {
             UserToConnectionMap.TryRemove(userId, out _);
-            _logger.LogInformation("User {UserId} disconnected", userId);
         }
         await base.OnDisconnectedAsync(exception);
     }
 
     public async Task JoinRoom(int userId, int roomId)
     {
-        ConnectionToUserMap[Context.ConnectionId] = userId;
         UserToConnectionMap[userId] = Context.ConnectionId;
 
         await Groups.AddToGroupAsync(Context.ConnectionId, $"Room_{roomId}");
@@ -47,7 +46,6 @@ public class RoomHub : Hub
         if (UserToConnectionMap.TryGetValue(userId, out var connectionId))
         {
             await Groups.RemoveFromGroupAsync(connectionId, $"Room_{roomId}");
-            ConnectionToUserMap.TryRemove(connectionId, out _);
             UserToConnectionMap.TryRemove(userId, out _);
 
             _logger.LogInformation("User {UserId} left room {RoomId}", userId, roomId);

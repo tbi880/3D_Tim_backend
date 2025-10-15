@@ -2,7 +2,6 @@ using _3D_Tim_backend.Data;
 using Microsoft.EntityFrameworkCore;
 using _3D_Tim_backend.Extensions;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +52,10 @@ builder.Services.AddServices();
 builder.Services.AddMessageQueueServices();
 builder.Services.AddAuthenticationServices(builder.Configuration);
 builder.Services.AddRoomStorage();
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 
 // CORS configuration
@@ -66,14 +69,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("_developmentOrigins", policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        policy.WithOrigins(allowedOrigins["Development"]).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 
     options.AddPolicy("_productionOrigins", policy =>
     {
         policy.WithOrigins(allowedOrigins["Production"])
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -124,6 +128,8 @@ else
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<RoomHub>("/connect"); // Map the RoomHub to the /connect endpoint for SignalR
 
 app.MapControllers(); // Add controllers for routing
 app.Run();
