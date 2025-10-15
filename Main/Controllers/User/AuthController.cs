@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using _3D_Tim_backend.DTOs;
 using System.Security.Claims;
+using _3D_Tim_backend.Services;
 
 namespace _3D_Tim_backend.Controllers
 {
@@ -10,10 +11,12 @@ namespace _3D_Tim_backend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly RoomManager _roomManager;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, RoomManager roomManager)
         {
             _authService = authService;
+            _roomManager = roomManager;
         }
 
         [HttpPost("register")]
@@ -62,6 +65,32 @@ namespace _3D_Tim_backend.Controllers
             {
                 return Unauthorized(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                return BadRequest("Invalid user id");
+            }
+            var roomId = await _roomManager.GetRoomIdByUserIdAsync(userId);
+            if (roomId != null)
+            {
+                await _roomManager.RoomRemoveUserAsync(userId, (int)roomId);
+            }
+            var userEntity = await _authService.GetUserByIdAsync(userId);
+            UserDTO userDTO = new UserDTO(
+    userEntity.Id,
+    userEntity.Name,
+    userEntity.Email,
+    userEntity.Money,
+    userEntity.TotalBets,
+    userEntity.Role.ToString()
+);
+            return Ok(userDTO);
         }
 
         [HttpPost("logout")]

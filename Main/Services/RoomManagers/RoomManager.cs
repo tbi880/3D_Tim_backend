@@ -143,7 +143,6 @@ namespace _3D_Tim_backend.Services
             _logger.LogInformation("RoomRemoveUserAsync {UserId} {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
             {
-                // 房间不存在：可能是已经被删除了 -> 清理映射并返回 true（认为移除成功）
                 _storage.UserIdToRoomId.TryRemove(userId, out _);
                 _logger.LogWarning("Attempted to remove user {UserId} from non-existent room {RoomId}. Cleared mapping.", userId, roomId);
                 return true;
@@ -151,11 +150,17 @@ namespace _3D_Tim_backend.Services
 
             if (!room.Users.TryGetValue(userId, out var userInRoom))
             {
-                // 用户不在房间里，仍然清理映射
                 _storage.UserIdToRoomId.TryRemove(userId, out _);
                 throw new RoomUserNotFoundException(userId, roomId);
             }
 
+            if (userInRoom.BetSides.IsEmpty == false)
+            {
+                foreach (var betAmount in userInRoom.BetSides.Values)
+                {
+                    userInRoom.MoneyInRoom += betAmount;
+                }
+            }
             await _userRepository.SyncUserDataToDbAsync(userInRoom);
             room.Users.TryRemove(userId, out _);
             _storage.UserIdToRoomId.TryRemove(userId, out _);

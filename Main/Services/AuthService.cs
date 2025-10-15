@@ -131,5 +131,15 @@ public class AuthService : IAuthService
         return token;
     }
 
+    public async Task<User> GetUserByIdAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            throw new Exception("User not found");
+        }
+        return user;
+    }
+
 
 }

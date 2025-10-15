@@ -3,7 +3,7 @@ namespace _3D_Tim_backend.Enums
     public enum Role
     {
         Guest = 0,
-        User = 0,
+        User = 1,
         VIP1 = 10,
         VIP2 = 50,
         VIP3 = 100,
