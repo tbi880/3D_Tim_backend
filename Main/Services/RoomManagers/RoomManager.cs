@@ -7,17 +7,20 @@ namespace _3D_Tim_backend.Services
     using _3D_Tim_backend.Domain;
     using System.Security.Cryptography;
     using Microsoft.Extensions.Logging;
+    using Microsoft.AspNetCore.SignalR;
 
     public class RoomManager
     {
         protected readonly IUserRepository _userRepository;
         protected readonly RoomStorage _storage;
+        protected readonly IHubContext<RoomHub> _hubContext;
         protected readonly ILogger<RoomManager> _logger;
 
-        public RoomManager(IUserRepository userRepository, RoomStorage storage, ILogger<RoomManager> logger)
+        public RoomManager(IUserRepository userRepository, RoomStorage storage, IHubContext<RoomHub> hubContext, ILogger<RoomManager> logger)
         {
             _userRepository = userRepository;
             _storage = storage;
+            _hubContext = hubContext;
             _logger = logger;
         }
 
@@ -79,7 +82,7 @@ namespace _3D_Tim_backend.Services
         public async Task<int> CreateRoomAsync(string roomName, int maxUsers, string levelOfBets, GameType gameType)
         {
             _logger.LogInformation("Creating room {RoomName}", roomName);
-            if (!Enum.TryParse(levelOfBets, true, out RoomMinBet roomMinBet) || !Enum.TryParse(levelOfBets, true, out RoomMaxBet roomMaxBet) || !Enum.TryParse(levelOfBets, true, out RoomUnitBet roomUnitBet))
+            if (!Enum.TryParse<RoomMinBet>(levelOfBets, true, out var roomMinBet) || !Enum.TryParse<RoomMaxBet>(levelOfBets, true, out var roomMaxBet) || !Enum.TryParse<RoomUnitBet>(levelOfBets, true, out var roomUnitBet))
             {
                 throw new LevelOfBetsNotValidException(levelOfBets);
             }
@@ -95,7 +98,7 @@ namespace _3D_Tim_backend.Services
             }
             Room room = gameType switch
             {
-                GameType.Baccarat => new BaccaratRoom(roomId, roomName, new BaccaratBetHandler(), maxUsers, (int)roomMinBet, (int)roomMaxBet, (int)roomUnitBet) { RoomName = roomName },
+                GameType.Baccarat => new BaccaratRoom(roomId, roomName, new BaccaratBetHandler(), maxUsers, (long)roomMinBet, (long)roomMaxBet, (long)roomUnitBet, _hubContext) { RoomName = roomName },
             };
             _storage.Rooms.TryAdd(roomId, room);
             return roomId;
@@ -182,6 +185,28 @@ namespace _3D_Tim_backend.Services
             return true;
         }
 
+        public virtual async Task<IUser?> GetUserInRoomAsync(int roomId, int userId)
+        {
+            _logger.LogInformation("Getting user {UserId} in room {RoomId}", userId, roomId);
+            if (!_storage.Rooms.TryGetValue(roomId, out var room))
+            {
+                throw new RoomNotFoundException(roomId);
+            }
+            if (!room.Users.TryGetValue(userId, out var userInRoom))
+            {
+                throw new RoomUserNotFoundException(userId, roomId);
+            }
+            return userInRoom;
+        }
 
+        public virtual async Task<int?> GetRoomIdByUserIdAsync(int userId)
+        {
+            _logger.LogInformation("Getting room id for user {UserId}", userId);
+            if (_storage.UserIdToRoomId.TryGetValue(userId, out var roomId))
+            {
+                return roomId;
+            }
+            return null;
+        }
     }
 }

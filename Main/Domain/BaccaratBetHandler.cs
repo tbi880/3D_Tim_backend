@@ -57,14 +57,15 @@ namespace _3D_Tim_backend.Domain
         }
 
 
-        public async Task HandleResultAsync(IUser user, List<string> winningSides)
+        public async Task<Dictionary<string, long>> HandleResultAsync(IUser user, List<string> winningSides)
         {
             if (user.BetSides.ContainsKey("Freehand"))
             {
                 user.BetSides.Clear();
-                return;
+                return new Dictionary<string, long>();
             }
             long originalTotal = user.MoneyInRoom + user.BetSides.Values.Sum();
+            var result = new Dictionary<string, long>();
 
             if (winningSides.Contains("Tie"))
             {
@@ -77,7 +78,9 @@ namespace _3D_Tim_backend.Domain
                 if (winningSides.Contains(betSide))
                 {
                     var odds = _oddsTable.ContainsKey(betSide) ? _oddsTable[betSide] : 1;
-                    user.MoneyInRoom += (int)(betAmount * (1 + odds));
+                    long winAmount = (long)(betAmount * (1 + odds));
+                    result[betSide] = winAmount;
+                    user.MoneyInRoom += winAmount;
                 }
             }
             if (originalTotal > user.MoneyInRoom)
@@ -94,6 +97,7 @@ namespace _3D_Tim_backend.Domain
             }
             user.TotalBetsInRoom++;
             user.BetSides.Clear();
+            return result;
         }
 
     }

@@ -8,6 +8,7 @@ namespace _3D_Tim_backend.Domain
     using System.Collections.Concurrent;
     using System.Security.Cryptography;
     using _3D_Tim_backend.Extensions;
+    using Microsoft.AspNetCore.SignalR;
 
     public class BaccaratRoom : Room
     {
@@ -19,11 +20,13 @@ namespace _3D_Tim_backend.Domain
         private List<string> _winningSides = [];
         private CancellationTokenSource _gameLoopCancellationTokenSource;
         private Task _gameLoopTask;
+        private readonly IHubContext<RoomHub> _hubContext;
 
-        public BaccaratRoom(int roomId, string roomName, IBetHandler betHandler, int maxUsers, int roomMinBet, int roomMaxBet, int roomUnitBet)
+        public BaccaratRoom(int roomId, string roomName, IBetHandler betHandler, int maxUsers, long roomMinBet, long roomMaxBet, long roomUnitBet, IHubContext<RoomHub> hubContext)
             : base(roomId, roomName, betHandler, maxUsers, roomMinBet, roomMaxBet, roomUnitBet)
         {
             GameType = GameType.Baccarat;
+            _hubContext = hubContext;
             GetAndShuffleNewDecks();
             _resultList = new List<string>();
             StartGameLoop();
@@ -60,23 +63,35 @@ namespace _3D_Tim_backend.Domain
             {
                 if (Users.Count > 0)
                 {
-                    int countdownMilliseconds = 31000; // 1 second for the internet delay
-                    int interval = 500;
-                    int elapsed = 0;
+                    foreach (var user in Users.Values)
+                    {
+                        user.StatusInRoom = RoomUserStatus.betting;
+                    }
+                    // Notify users the status has changed to betting
+                    await _hubContext.Clients.Group($"Room_{RoomId}").SendAsync("UserStatusChanged", new
+                    {
+                        roomId = RoomId,
+                        RoomUserStatus = "betting",
+                        countdownMs = 31000
+                    });
+
+                    int countdownMillisecondsForBetting = 31000; // 1 second for the internet delay
+                    int intervalForBetting = 500;
+                    int elapsedForBetting = 0;
                     bool lastHandFinished = false;
-                    while (elapsed < countdownMilliseconds && !cancellationToken.IsCancellationRequested)
+
+                    while (elapsedForBetting < countdownMillisecondsForBetting && !cancellationToken.IsCancellationRequested)
                     {
                         if (is_last_hand && !lastHandFinished)
                         {
-                            // NotifyTheLastHand();
                             lastHandFinished = true;
                         }
                         if (AllUsersHaveBet())
                         {
                             break;
                         }
-                        await Task.Delay(interval, cancellationToken);
-                        elapsed += interval;
+                        await Task.Delay(intervalForBetting, cancellationToken);
+                        elapsedForBetting += intervalForBetting;
                     }
 
                     foreach (var user in Users.Values)
@@ -84,10 +99,61 @@ namespace _3D_Tim_backend.Domain
                         if (user.BetSides == null || user.BetSides.IsEmpty)
                         {
                             await PlaceBetAsync(user.UserId, "Freehand", 0);
+                            user.StatusInRoom = RoomUserStatus.waiting;
+                        }
+                        else
+                        {
+                            user.StatusInRoom = RoomUserStatus.dealing;
                         }
                     }
                     var winningSides = await StartGameAsync();
                     await HandleResultAsync(winningSides);
+
+                    // Notify game is ready to fetch results and hands
+                    await _hubContext.Clients.Group($"Room_{RoomId}").SendAsync("ResultsReady", new
+                    {
+                        roomId = RoomId,
+                        winningSides = winningSides,
+                        gameHands = await GetLatestGameHandsAsync()
+                    });
+
+                    int countdownMillisecondsForDealing = 46000; // 1 second for the internet delay
+                    int intervalForDealing = 1000;
+                    int elapsedForDealing = 0;
+
+                    while (elapsedForDealing < countdownMillisecondsForDealing && !cancellationToken.IsCancellationRequested)
+                    {
+                        await Task.Delay(intervalForDealing, cancellationToken);
+                        elapsedForDealing += intervalForDealing;
+
+                        if (AllUsersHaveDealt())
+                        {
+                            break;
+                        }
+                    }
+
+                    // Notify users the countdown for results is starting
+                    await _hubContext.Clients.Group($"Room_{RoomId}").SendAsync("NewGameCountdownStarted", new
+                    {
+                        roomId = RoomId,
+                        resultList = _resultList
+                    });
+
+                    int countdownMillisecondsForResulting = 11000; // 1 second for the internet delay
+                    int intervalForResulting = 1000;
+                    int elapsedForResulting = 0;
+
+                    while (elapsedForResulting < countdownMillisecondsForResulting && !cancellationToken.IsCancellationRequested)
+                    {
+                        await Task.Delay(intervalForResulting, cancellationToken);
+                        elapsedForResulting += intervalForResulting;
+
+                        if (AllUsersHaveResulted())
+                        {
+                            break;
+                        }
+                    }
+
                     if (is_last_hand && lastHandFinished)
                     {
                         GetAndShuffleNewDecks();
@@ -103,10 +169,18 @@ namespace _3D_Tim_backend.Domain
 
         private bool AllUsersHaveBet()
         {
-            return Users.Values.All(user => user.BetSides != null && user.BetSides.Count > 0);
+            return Users.Values.All(user => user.StatusInRoom == RoomUserStatus.dealing || user.StatusInRoom == RoomUserStatus.waiting);
         }
 
+        private bool AllUsersHaveDealt()
+        {
+            return Users.Values.All(user => user.StatusInRoom == RoomUserStatus.results || user.StatusInRoom == RoomUserStatus.waiting);
+        }
 
+        private bool AllUsersHaveResulted()
+        {
+            return Users.Values.All(user => user.StatusInRoom == RoomUserStatus.waiting);
+        }
 
         public void GetAndShuffleNewDecks()
         {
@@ -170,6 +244,11 @@ namespace _3D_Tim_backend.Domain
             if (!is_last_hand && _shoeOfCards.Count == 12)
             {
                 is_last_hand = true;
+                // NotifyTheLastHand();
+                await _hubContext.Clients.Group($"Room_{RoomId}").SendAsync("NextGameLastHand", new
+                {
+                    roomId = RoomId
+                });
             }
             if (!_shoeOfCards.TryDequeue(out var card))
             {
@@ -183,10 +262,7 @@ namespace _3D_Tim_backend.Domain
             BankerHands = new List<string>();
             PlayerHands = new List<string>();
             _winningSides = new List<string>();
-            // if (is_last_hand)
-            // {
-            //     NotifyTheLasthand();
-            // }   
+
             var playerCard1 = await DealOneCardAsync();
             var bankerCard1 = await DealOneCardAsync();
             var playerCard2 = await DealOneCardAsync();
@@ -289,7 +365,12 @@ namespace _3D_Tim_backend.Domain
         {
             foreach (var user in Users.Values)
             {
-                await _betHandler.HandleResultAsync(user, winningSides);
+                var result = await _betHandler.HandleResultAsync(user, winningSides);
+                await _hubContext.Clients.Group($"Room_{RoomId}").SendAsync("PlaceBetResult", new
+                {
+                    roomId = RoomId,
+                    resultList = result
+                });
             }
         }
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using _3D_Tim_backend.Enums;
 
 namespace _3D_Tim_backend.Domain
 
@@ -12,6 +13,7 @@ namespace _3D_Tim_backend.Domain
         int TieCountInRoom { get; set; }
         int TotalBetsInRoom { get; set; }
         long MoneyInRoom { get; set; }
+        RoomUserStatus StatusInRoom { get; set; }
         ConcurrentDictionary<string, long> BetSides { get; set; }
     }
 }

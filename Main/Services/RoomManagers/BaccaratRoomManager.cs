@@ -6,13 +6,19 @@ namespace _3D_Tim_backend.Services
     using _3D_Tim_backend.Exceptions;
     using _3D_Tim_backend.Domain;
     using Microsoft.Extensions.Logging;
-
+    using Microsoft.AspNetCore.SignalR;
 
     public class BaccaratRoomManager : RoomManager
     {
         private readonly ILogger<BaccaratRoomManager> _logger;
 
-        public BaccaratRoomManager(IUserRepository userRepository, RoomStorage storage, ILogger<RoomManager> baseLogger, ILogger<BaccaratRoomManager> logger) : base(userRepository, storage, baseLogger)
+        public BaccaratRoomManager(
+            IUserRepository userRepository,
+            RoomStorage storage,
+            IHubContext<RoomHub> hubContext,
+            ILogger<RoomManager> baseLogger,
+            ILogger<BaccaratRoomManager> logger
+        ) : base(userRepository, storage, hubContext, baseLogger)
         {
             _logger = logger;
         }
