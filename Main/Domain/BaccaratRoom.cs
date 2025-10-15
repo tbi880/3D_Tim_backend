@@ -147,7 +147,7 @@ namespace _3D_Tim_backend.Domain
             }
         }
 
-        public override async Task PlaceBetAsync(int userId, string betSide, int betAmount)
+        public override async Task PlaceBetAsync(int userId, string betSide, long betAmount)
         {
             if (!Users.TryGetValue(userId, out var user))
             {

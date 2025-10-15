@@ -109,7 +109,7 @@ namespace _3D_Tim_backend.Repositories
             {
                 throw new UserNotFoundException(domainUser.UserId);
             }
-            user.Money = domainUser.MoneyInRoom;
+            user.Money += domainUser.MoneyInRoom;
             user.LastVisitAt = DateTime.Now;
             user.TotalBets += domainUser.TotalBetsInRoom;
 

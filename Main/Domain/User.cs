@@ -10,9 +10,9 @@ namespace _3D_Tim_backend.Domain
         public int LoseCountInRoom { get; set; } = 0;
         public int TieCountInRoom { get; set; } = 0;
         public int TotalBetsInRoom { get; set; } = 0;
-        public int MoneyInRoom { get; set; } = 0;
+        public long MoneyInRoom { get; set; } = 0;
 
-        public ConcurrentDictionary<string, int> BetSides { get; set; } = new ConcurrentDictionary<string, int>();
+        public ConcurrentDictionary<string, long> BetSides { get; set; } = new ConcurrentDictionary<string, long>();
 
 
     }

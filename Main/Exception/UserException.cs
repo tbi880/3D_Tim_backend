@@ -17,7 +17,7 @@ namespace _3D_Tim_backend.Exceptions
 
     public class InsufficientBalanceException : UserException
     {
-        public InsufficientBalanceException(int userId, int balance, int requiredBalance)
+        public InsufficientBalanceException(int userId, long balance, long requiredBalance)
             : base($"User with ID {userId} has insufficient balance. Current balance: {balance}, required balance: {requiredBalance}") { }
     }
 }

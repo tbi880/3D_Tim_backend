@@ -16,7 +16,7 @@ namespace _3D_Tim_backend.Domain
             {"Freehand", -1 }       // freehand, skip the round
         };
 
-        public async Task PlaceBetAsync(IUser user, string betSide, int betAmount, int roomMinBet, int roomMaxBet, int roomUnitBet)
+        public async Task PlaceBetAsync(IUser user, string betSide, long betAmount, long roomMinBet, long roomMaxBet, long roomUnitBet)
         {
             if (betSide == "Freehand")
             {
@@ -64,7 +64,7 @@ namespace _3D_Tim_backend.Domain
                 user.BetSides.Clear();
                 return;
             }
-            int originalTotal = user.MoneyInRoom + user.BetSides.Values.Sum();
+            long originalTotal = user.MoneyInRoom + user.BetSides.Values.Sum();
 
             if (winningSides.Contains("Tie"))
             {

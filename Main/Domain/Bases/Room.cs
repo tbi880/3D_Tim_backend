@@ -13,9 +13,9 @@ namespace _3D_Tim_backend.Domain
         public required string RoomName { get; set; }
         public int MaxUsers { get; set; }
         public ConcurrentDictionary<int, IUser> Users { get; set; } = new ConcurrentDictionary<int, IUser>();
-        public int RoomMinBet { get; set; }
-        public int RoomMaxBet { get; set; }
-        public int RoomUnitBet { get; set; }
+        public long RoomMinBet { get; set; }
+        public long RoomMaxBet { get; set; }
+        public long RoomUnitBet { get; set; }
         public GameType GameType { get; set; }
 
         private readonly object _lock = new object();
@@ -23,7 +23,7 @@ namespace _3D_Tim_backend.Domain
         public object Lock => _lock;
 
 
-        public Room(int roomId, string roomName, IBetHandler betHandler, int maxUsers, int roomMinBet, int roomMaxBet, int roomUnitBet)
+        public Room(int roomId, string roomName, IBetHandler betHandler, int maxUsers, long roomMinBet, long roomMaxBet, long roomUnitBet)
         {
             RoomId = roomId;
             RoomName = roomName;
@@ -37,7 +37,7 @@ namespace _3D_Tim_backend.Domain
         public async Task<bool> IsFullAsync() => Users.Count >= MaxUsers;
 
 
-        public virtual async Task PlaceBetAsync(int userId, string betSide, int betAmount)
+        public virtual async Task PlaceBetAsync(int userId, string betSide, long betAmount)
         {
             throw new NotImplementedException("PlaceBet must be implemented in the derived class.");
         }

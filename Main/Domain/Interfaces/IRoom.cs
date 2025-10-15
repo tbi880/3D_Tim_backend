@@ -9,9 +9,9 @@ namespace _3D_Tim_backend.Domain
         int RoomId { get; set; }
         string RoomName { get; set; }
         int MaxUsers { get; set; }
-        int RoomMinBet { get; set; }
-        int RoomMaxBet { get; set; }
-        int RoomUnitBet { get; set; }
+        long RoomMinBet { get; set; }
+        long RoomMaxBet { get; set; }
+        long RoomUnitBet { get; set; }
         object Lock { get; }
 
 
@@ -20,7 +20,7 @@ namespace _3D_Tim_backend.Domain
 
         Task StartGameAsync();
         Task<bool> IsFullAsync();
-        Task PlaceBetAsync(int userId, string betSide, int betAmount);
+        Task PlaceBetAsync(int userId, string betSide, long betAmount);
         Task ClearBetAsync(int userId);
         void StartGameLoop();
         Task StopGameLoopAsync();

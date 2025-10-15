@@ -1,16 +1,16 @@
 namespace _3D_Tim_backend.Enums
 {
-    public enum RoomUnitBet
+    public enum RoomUnitBet : long
     {
-        lv1 = 100,
-        lv2 = 200,
-        lv3 = 500,
-        lv4 = 1000,
-        lv5 = 5000,
-        lv6 = 10000,
-        lv7 = 30000,
-        lv8 = 50000,
-        lv9 = 100000,
-        lv10 = 500000
+        lv1 = 100L,
+        lv2 = 200L,
+        lv3 = 500L,
+        lv4 = 1000L,
+        lv5 = 5000L,
+        lv6 = 10000L,
+        lv7 = 30000L,
+        lv8 = 50000L,
+        lv9 = 100000L,
+        lv10 = 500000L
     }
 }

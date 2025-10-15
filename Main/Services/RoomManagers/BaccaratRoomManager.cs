@@ -79,7 +79,7 @@ namespace _3D_Tim_backend.Services
             return resultList;
         }
 
-        public override async Task<bool> PlaceBetsAsync(int roomId, int userId, Dictionary<string, int> BetSidesWithAmount)
+        public override async Task<bool> PlaceBetsAsync(int roomId, int userId, Dictionary<string, long> BetSidesWithAmount)
         {
             _logger.LogInformation("Placing baccarat bets for user {UserId} in room {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))
@@ -91,17 +91,17 @@ namespace _3D_Tim_backend.Services
                 throw new RoomUserNotFoundException(userId, roomId);
             }
 
-            if (BetSidesWithAmount.TryGetValue("Player", out int playerBetAmount))
+            if (BetSidesWithAmount.TryGetValue("Player", out long playerBetAmount))
             {
                 await room.PlaceBetAsync(userId, "Player", playerBetAmount);
                 BetSidesWithAmount.Remove("Player");
             }
-            if (BetSidesWithAmount.TryGetValue("Banker", out int bankerBetAmount))
+            if (BetSidesWithAmount.TryGetValue("Banker", out long bankerBetAmount))
             {
                 await room.PlaceBetAsync(userId, "Banker", bankerBetAmount);
                 BetSidesWithAmount.Remove("Banker");
             }
-            if (BetSidesWithAmount.TryGetValue("Tie", out int tieBetAmount))
+            if (BetSidesWithAmount.TryGetValue("Tie", out long tieBetAmount))
             {
                 await room.PlaceBetAsync(userId, "Tie", tieBetAmount);
                 BetSidesWithAmount.Remove("Tie");

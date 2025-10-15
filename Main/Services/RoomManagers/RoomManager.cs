@@ -164,7 +164,7 @@ namespace _3D_Tim_backend.Services
             return true;
         }
 
-        public virtual async Task<bool> PlaceBetsAsync(int roomId, int userId, Dictionary<string, int> BetSidesWithAmount)
+        public virtual async Task<bool> PlaceBetsAsync(int roomId, int userId, Dictionary<string, long> BetSidesWithAmount)
         {
             _logger.LogInformation("Placing bets for user {UserId} in room {RoomId}", userId, roomId);
             if (!_storage.Rooms.TryGetValue(roomId, out var room))

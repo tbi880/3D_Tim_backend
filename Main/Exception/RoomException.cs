@@ -31,7 +31,7 @@ namespace _3D_Tim_backend.Exceptions
 
     public class RoomEnterInsufficientBalanceException : RoomException
     {
-        public RoomEnterInsufficientBalanceException(int userId, int balance, int requiredBalance)
+        public RoomEnterInsufficientBalanceException(int userId, long balance, long requiredBalance)
             : base($"User with ID {userId} has insufficient balance. Current balance: {balance}, Minimum required: {requiredBalance}.") { }
     }
 
@@ -69,7 +69,7 @@ namespace _3D_Tim_backend.Exceptions
 
     public class InvalidBetAmountException : RoomException
     {
-        public InvalidBetAmountException(int betAmount, int roomMinBet, int roomMaxBet, int roomUnitBet)
+        public InvalidBetAmountException(long betAmount, long roomMinBet, long roomMaxBet, long roomUnitBet)
             : base($"Invalid bet amount {betAmount}. Minimum: {roomMinBet}, Maximum: {roomMaxBet}, Unit: {roomUnitBet}.") { }
     }
 
